@@ -1,0 +1,7 @@
+*~
+build
+*.swp
+*.pyc
+CMakeLists.txt.user
+Makefile
+

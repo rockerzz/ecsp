@@ -1,0 +1,5 @@
+
+subdirs(xunit)
+subdirs(manual)
+
+

@@ -1,0 +1,229 @@
+#!/bin/sh
+
+project="ecsp"
+source_dir=`cd "\`dirname \"$0\"\`";pwd`
+build_dir=${source_dir}/build
+version_major=`awk -F. '{print $1}' ${source_dir}/VERSION`
+version_minor=`awk -F. '{print $2}' ${source_dir}/VERSION`
+version_patch=`awk -F. '{print $3}' ${source_dir}/VERSION`
+version="${version_major}.${version_minor}.${version_patch}"
+
+#default cmake parameters
+cmake=`which cmake`
+solution="emp"
+
+#default directories
+prefix_dir="/usr"
+
+# Display bootstrap usage
+show_usage()
+{
+cat << EOF
+Usage: $0  [OPTION]... [VAR=VALUE]..
+
+Options: [defaults in brackets after descriptions]
+
+Configuration:
+  -h, --help              print this message
+  -V, --version           only print version information
+  -v, --verbose           display more information
+
+Installation directories:
+  --prefix=PREFIX         install architecture-independent files in PREFIX
+  --bindir=DIR            user executables [PREFIX/bin]
+  --libdir=DIR            object code libraries [PREFIX/lib/${project}]
+  --plugindir=DIR         object code plugins [PREFIX/lib/${project}/plugins]
+  --includedir=DIR        header files [PREFIX/include/${project}]
+  --datadir=DIR           read-only arch.-independent data root DATAROOT
+  --tooldir=DIR           developer toolkit [DATAROOT/${project}/tools]
+  --exampledir=DIR        developer examples [DATAROOT/${project}/example]
+  --docdir=DIR            documentation root [DATAROOT/doc/${project}]
+  --syslibdir=DIR         use system-installed third-party libraries
+                          (for use only by package maintainers)
+Optional Features:
+  --enable-debug          build with debugging symbols (-g)
+  --enable-profiling      build with profiling enabled
+  --enable-coverage       build with coverage testing instrumentation
+
+Optional Packages:
+  --with-libraries=DIRS   look for additional libraries in DIRS
+  --with-libs=DIRS        alternative spelling of --with-libraries
+  --with-python           build Python modules
+  --with-pgsql            build PostgreSQL modules
+  --with-mysql            build MySQL modules
+  --with-solution=NAME    build solution plugins
+  --with-test             build unittests
+EOF
+  exit 10
+}
+
+# Display CMake bootstrap usage
+show_version()
+{
+    echo "ecsp version: ${version}"
+}
+
+# Helper function to fix windows paths.
+fix_slashes ()
+{
+    echo "$1" | sed 's/\\/\//g'
+}
+
+# Display bootstrap error and exit
+show_error()
+{
+    res=$1
+    shift 1
+    echo "---------------------------------------------"
+    echo "Error when bootstrapping ${project}:" 
+    echo "$*"
+    echo "---------------------------------------------"
+    cd ${source_dir}
+    exit ${res}
+}
+
+# process command line arguments
+while test $# -gt 0 ; do
+  case $1 in
+    -h | --help | --h*) show_usage; exit $?;;
+    -V | --version)     show_version;  exit $?;;
+    -v | --verbose)     cmake_verbose="yes";;
+    --prefix=*)         prefix_dir=${1#--prefix=};;
+    --bindir=*)         bin_dir=${1#--bindir=};;
+    --libdir=*)         lib_dir=${1#--libdir=};;
+    --plugindir=*)      plugin_dir=${1#--plugindir=};;
+    --includedir=*)     include_dir=${1#--includedir=};;
+    --datadir=*)        data_dir=${1#--datadir=};;
+    --tooldir=*)        tool_dir=${1#--tooldir=};;
+    --exampledir=*)     example_dir=${1#--exampledir=};;
+    --docdir=*)         doc_dir=${1#--docdir=};;
+    --syslibdir=*)      syslib_dir=${1#--syslibdir=};;
+
+    --enable-debug)     enable_debug="yes";;
+    --enable-profiling) enable_profile="yes";;
+    --enable-coverage)  enable_coverage="yes";;
+
+    --with-libraries=*) with_libs=${1#--with-libraries=};;
+    --with-libs=*)      with_libs=${1#--with-libs=};;
+
+    --with-python)      with_python="yes";;
+    --with-pgsql)       with_pgsql="yes";;
+    --with-mysql)       with_mysql="yes";;
+    --with-solution=*)  solution=${1#--with-solution=};;
+
+    *)                  show_usage;  exit 1;;
+  esac
+  shift
+done
+
+
+#set cmake parameters
+if [ -z $prefix_dir ]; then
+    show_error 1 "Wrong install prefix dir"
+else
+    prefix_dir="-DCMAKE_INSTALL_PREFIX=${prefix_dir}"
+fi
+
+if [ ! -z $bin_dir ]; then
+    bin_dir="-DINSTALL_BIN_DIR=${bin_dir}"
+fi
+
+if [ ! -z $lib_dir ]; then
+    lib_dir="-DINSTALL_LIB_DIR=${lib_dir}"
+fi
+
+if [ ! -z $plugin_dir ]; then
+    plugin_dir="-DINSTALL_PLUGIN_DIR=${plugin_dir}"
+fi
+
+if [ ! -z $include_dir ]; then
+    include_dir="-DINSTALL_INCLUDE_DIR=${include_dir}"
+fi
+
+if [ ! -z $data_dir ]; then
+    data_dir="-DINSTALL_DATA_DIR=${data_dir}"
+fi
+
+if [ ! -z $tool_dir ]; then
+    tool_dir="-DINSTALL_TOOL_DIR=${tool_dir}"
+fi
+
+if [ ! -z $example_dir ]; then
+    example_dir="-DINSTALL_EXAMPLE_DIR=${example_dir}"
+fi
+
+if [ ! -z $doc_dir ]; then
+    doc_dir="-DINSTALL_DOC_DIR=${doc_dir}"
+fi
+
+if [ ! -z $enable_verbose ]; then
+    enable_verbose="-DCMAKE_VERBOSE_MAKEFILE=ON"
+fi
+
+if [ ! -z $enable_profile ]; then
+    enable_profile="-WITH_PROFILER"
+fi
+
+if [ ! -z $enable_debug ]; then
+    enable_debug="-DCMAKE_BUILD_TYPE=Debug"
+else
+    enable_debug="-DCMAKE_BUILD_TYPE=Release"
+fi
+
+if [ ! -z $with_libs ]; then
+    with_libs="-DCMAKE_PREFIX_PATH=${with_libs}"
+fi
+
+if [ ! -z $with_python ]; then
+    with_python="-WITH_PYTHON"
+fi
+
+if [ ! -z $with_pgsql ]; then
+    with_pgsql="-WITH_PGSQL"
+fi
+
+if [ ! -z $with_mysql ]; then
+    with_mysql="-WITH_MYSQL"
+fi
+
+if [ ! -z $solution ]; then
+    solution="-DSOLUTION=${solution}"
+fi
+
+echo "${cmake} ${enable_verbose} ${enable_profile} ${enable_debug} ${with_pgsql} ${with_mysql} ${with_python} ${prefix_dir} ${bin_dir} ${lib_dir} ${plugin_dir} ${tool_dir} ${example_dir} ${doc_dir} ${with_libs} ${solution} .."
+
+
+#rm -rf ${build_dir}
+mkdir -p ${build_dir}
+cd  ${build_dir}
+
+${cmake} ${enable_verbose} ${enable_profile} ${enable_debug} ${with_pgsql} ${with_mysql} ${with_python} ${prefix_dir} ${bin_dir} ${lib_dir} ${plugin_dir} ${tool_dir} ${example_dir} ${doc_dir} ${with_libs} ${solution} ..
+
+if [ $? -ne 0 ]; then
+    show_error
+fi
+cd ${source_dir}
+
+
+
+cat > Makefile << EOF
+# Automatic generated file: DO NOT EDIT!
+
+# Default target executed when no arguments are given to make.
+default_target: all
+.PHONY : default_target
+
+# The top-level build directory on which make was run
+SOURCEDIR = ${build_dir}
+
+# Suppress display of executed commands.
+\$(VERBOSE).SILENT:
+
+# Redirect all rules to sub-makefile
+.DEFAULT :
+	cd \$(SOURCEDIR); \$(MAKE) \$(@)
+
+all :
+	cd \$(SOURCEDIR); \$(MAKE) all
+.PHONY : all
+EOF

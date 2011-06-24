@@ -1,0 +1,18 @@
+#cmakedefine VERSION "${VERSION}"
+#cmakedefine PROJECT_NAME ${PROJECT_NAME}
+#cmakedefine SOLUTION_NAME ${SOLUTION_NAME}
+
+#cmakedefine OS_UNKNOWN ${OS_UNKNOWN}
+#cmakedefine OS_LINUX ${OS_LINUX}
+#cmakedefine OS_BSD ${OS_BSD}
+#cmakedefine OS_SOLARIS ${OS_SOLARIS}
+#cmakedefine OS_CYGWIN ${OS_CYGWIN}
+#cmakedefine OS_CODE ${OS_CODE}
+#cmakedefine HAVE_EXEC_INFO_H
+
+#cmakedefine HAVE_PGSQL ${HAVE_PGSQL}
+#cmakedefine HAVE_MYSQL ${HAVE_MYSQL}
+
+#cmakedefine SIZEOF_LONGLONG ${SIZEOF_LONGLONG}
+#cmakedefine SIZEOF_DOUBLE ${SIZEOF_DOUBLE}
+#cmakedefine SIZEOF_INT ${SIZEOF_INT}

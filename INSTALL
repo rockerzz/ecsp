@@ -1,0 +1,40 @@
+ECSP Server - Installation
+====================================================
+
+
+From Sources - Linux
+====================
+
+You need CMake from <http://www.cmake.org> for configuring server.
+
+If you need/want to tweak build a bit more than configure wrapper
+provides, you have to use CMake directly. For now, only out of source
+build is supported, so you have to create separate directory for build:
+
+> mkdir build
+> cd build
+
+Then just configure project:
+
+> cmake ..
+
+Build it:
+
+> make
+
+Test that everything is okay:
+
+> make test
+
+And finally install it:
+
+> sudo make install
+
+You can configure build parameters either by command line (see
+parameters bellow), or using TUI - ccmake.
+
+Useful cmake parameters:
+
+-DCMAKE_BUILD_TYPE="Debug" enables debug build
+-DCMAKE_INSTALL_PREFIX="/usr" change installation prefix
+-DCMAKE_PREFIX_PATH="~/libs" path to third party libraries
