@@ -1,0 +1,1 @@
+configure_file(gtest_test_utils.py "${CMAKE_BINARY_DIR}/bin/gtest_test_utils.py")
