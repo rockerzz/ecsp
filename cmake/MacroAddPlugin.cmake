@@ -160,7 +160,7 @@ MACRO(ADD_CXX_PLUGIN)
          )
 
 
-        # Учитываем CMakeLists, если присутствует
+        # Consider CMakeLists if exist
         file(GLOB CMAKELISTS "${CMAKE_SOURCE_DIR}/src/plugins/${PLUGIN_NAME}/CMakeLists.txt")
         if(CMAKELISTS)
             subdirs(${CMAKE_SOURCE_DIR}/src/plugins/${PLUGIN_NAME})

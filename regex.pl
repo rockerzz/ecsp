@@ -4,7 +4,6 @@
 use strict;
 use warnings;
 
-#my $string = "// Автор:    cdcsdcsdcsdc\n";
 
 #if ($string =~ s/\/\/(\s*)Автор:(\s*)(.*\n)/\/\/ Author: rockerzz/) { print "found: $string\n"; }
 
@@ -19,7 +18,7 @@ sub getDir
     {
         return;
     }
-    opendir(DIR,$dir) or die "невозможно открыть папку $dir";  
+    opendir(DIR,$dir) or die "Can't open folder $dir";  
     @content = grep { !/^\.{1,2}$/} readdir(DIR);  
     closedir(DIR);  
     foreach $subdir (@content)
